@@ -1,0 +1,1088 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RPG de Tabelas e Gráficos</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#111b33;
+      --panel2:#0f1730;
+      --text:#e8eefc;
+      --muted:#a9b4d6;
+      --accent:#6ae4ff;
+      --accent2:#a78bfa;
+      --good:#34d399;
+      --bad:#fb7185;
+      --warn:#fbbf24;
+      --border:rgba(255,255,255,.10);
+      --shadow: 0 10px 35px rgba(0,0,0,.35);
+      --radius: 16px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+      background: radial-gradient(1200px 500px at 10% 0%, rgba(106,228,255,.18), transparent 60%),
+                  radial-gradient(900px 450px at 90% 10%, rgba(167,139,250,.18), transparent 55%),
+                  linear-gradient(180deg, #070c16 0%, var(--bg) 65%, #070c16 100%);
+      color:var(--text);
+      min-height:100vh;
+    }
+    header{
+      padding:18px 14px 10px;
+      max-width:1100px;
+      margin:0 auto;
+    }
+    .topbar{
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+    .brand{
+      display:flex; gap:12px; align-items:center;
+    }
+    .logo{
+      width:44px; height:44px; border-radius:14px;
+      background: linear-gradient(135deg, rgba(106,228,255,.35), rgba(167,139,250,.35));
+      border:1px solid var(--border);
+      box-shadow: var(--shadow);
+      display:grid; place-items:center;
+      font-weight:800;
+      letter-spacing:.5px;
+    }
+    .brand h1{
+      margin:0;
+      font-size:16px;
+      line-height:1.2;
+    }
+    .brand p{
+      margin:3px 0 0;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .stats{
+      display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;
+    }
+    .chip{
+      background: rgba(255,255,255,.06);
+      border:1px solid var(--border);
+      padding:10px 12px;
+      border-radius:999px;
+      display:flex; gap:10px; align-items:center;
+      box-shadow: 0 8px 20px rgba(0,0,0,.25);
+      white-space:nowrap;
+    }
+    .chip .k{
+      font-size:12px; color:var(--muted);
+    }
+    .chip .v{
+      font-weight:800; font-size:13px;
+      color:var(--accent);
+    }
+    main{
+      max-width:1100px;
+      margin:0 auto;
+      padding:10px 14px 28px;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1.3fr .9fr;
+      gap:14px;
+      align-items:start;
+    }
+    @media (max-width: 900px){
+      .grid{ grid-template-columns:1fr; }
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card .card-h{
+      padding:14px 14px 10px;
+      border-bottom:1px solid rgba(255,255,255,.07);
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+      flex-wrap:wrap;
+    }
+    .card .card-h h2{
+      margin:0;
+      font-size:14px;
+      letter-spacing:.2px;
+    }
+    .card .card-h .sub{
+      margin:6px 0 0;
+      color:var(--muted);
+      font-size:12.5px;
+      max-width:680px;
+    }
+    .content{
+      padding:14px;
+    }
+
+    /* RPG UI */
+    .barwrap{
+      display:grid;
+      gap:10px;
+    }
+    .hpRow{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      color:var(--muted);
+      font-size:12.5px;
+    }
+    .bar{
+      height:12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      overflow:hidden;
+    }
+    .bar > span{
+      display:block;
+      height:100%;
+      width:50%;
+      background: linear-gradient(90deg, rgba(106,228,255,.9), rgba(167,139,250,.85));
+      border-radius:999px;
+      transition: width .25s ease;
+    }
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    /* Perguntas */
+    .quest{
+      display:grid;
+      gap:12px;
+    }
+    .badge{
+      display:inline-flex;
+      padding:6px 10px;
+      border-radius:999px;
+      background: rgba(106,228,255,.12);
+      border:1px solid rgba(106,228,255,.25);
+      color: var(--accent);
+      font-size:12px;
+      font-weight:800;
+    }
+    .prompt{
+      font-size:15px;
+      line-height:1.45;
+      margin:0;
+    }
+    .hint{
+      margin:0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.4;
+      background: rgba(255,255,255,.04);
+      border:1px dashed rgba(255,255,255,.14);
+      padding:10px 12px;
+      border-radius: 12px;
+    }
+    .inputRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:flex-end;
+    }
+    label{
+      display:block;
+      font-size:12.5px;
+      color:var(--muted);
+      margin:0 0 6px 2px;
+    }
+    input[type="text"], select, textarea{
+      width:100%;
+      background: rgba(0,0,0,.18);
+      color: var(--text);
+      border:1px solid rgba(255,255,255,.14);
+      border-radius: 12px;
+      padding:12px 12px;
+      outline:none;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.15);
+    }
+    input[type="text"]::placeholder, textarea::placeholder{
+      color: rgba(232,238,252,.45);
+    }
+    .field{
+      flex: 1 1 260px;
+      min-width: 220px;
+    }
+    .btns{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    button{
+      cursor:pointer;
+      border:none;
+      border-radius: 12px;
+      padding:12px 14px;
+      font-weight:900;
+      letter-spacing:.2px;
+      color:#07101f;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow: 0 10px 22px rgba(106,228,255,.15);
+      transition: transform .08s ease, filter .15s ease;
+      flex: 0 0 auto;
+    }
+    button:active{ transform: translateY(1px); }
+    .btnSecondary{
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      border:1px solid rgba(255,255,255,.16);
+      box-shadow:none;
+    }
+    .btnDanger{
+      background: rgba(251,113,133,.16);
+      color: var(--bad);
+      border:1px solid rgba(251,113,133,.35);
+      box-shadow:none;
+    }
+    .feedback{
+      border-radius: 14px;
+      padding:12px 12px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+    }
+    .feedback.good{
+      border-color: rgba(52,211,153,.35);
+      background: rgba(52,211,153,.12);
+    }
+    .feedback.bad{
+      border-color: rgba(251,113,133,.35);
+      background: rgba(251,113,133,.12);
+    }
+    .feedback .title{
+      font-weight:1000;
+      margin:0;
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    .feedback p{
+      margin:6px 0 0;
+      color: var(--muted);
+      font-size:13px;
+      line-height:1.4;
+    }
+    .smallNote{
+      color: var(--muted);
+      font-size:12.5px;
+      line-height:1.4;
+      margin-top:10px;
+    }
+
+    /* Coluna lateral */
+    .sideList{
+      display:grid;
+      gap:10px;
+    }
+    .sideItem{
+      background: rgba(0,0,0,.14);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: 14px;
+      padding:12px 12px;
+    }
+    .sideItem .t{
+      display:flex; justify-content:space-between; gap:10px; align-items:center;
+      font-weight:1000;
+      font-size:13px;
+    }
+    .sideItem .desc{
+      color:var(--muted);
+      font-size:12.5px;
+      line-height:1.4;
+      margin-top:6px;
+    }
+    .progressList{
+      margin:0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size:13px;
+      line-height:1.6;
+    }
+    .progressList strong{
+      color: var(--text);
+    }
+
+    /* Modal */
+    .modalOverlay{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,.55);
+      display:none;
+      place-items:center;
+      padding:18px;
+      z-index:999;
+    }
+    .modalOverlay.show{ display:grid; }
+    .modal{
+      width:min(720px, 100%);
+      background: linear-gradient(180deg, rgba(17,27,51,.98), rgba(10,16,34,.98));
+      border:1px solid rgba(255,255,255,.14);
+      border-radius: 18px;
+      box-shadow: 0 40px 90px rgba(0,0,0,.55);
+      overflow:hidden;
+    }
+    .modal h3{
+      margin:0;
+      padding:14px 14px 10px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      font-size:14px;
+      letter-spacing:.2px;
+    }
+    .modal .modalBody{
+      padding:14px;
+      color:var(--muted);
+      font-size:13.5px;
+      line-height:1.55;
+      display:grid;
+      gap:10px;
+    }
+    .modal .modalFooter{
+      padding:14px;
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      border-top:1px solid rgba(255,255,255,.08);
+    }
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      background: rgba(255,255,255,.07);
+      border:1px solid rgba(255,255,255,.14);
+      padding:2px 8px;
+      border-radius: 10px;
+      color: var(--text);
+      font-size:12px;
+      white-space:nowrap;
+    }
+    footer{
+      max-width:1100px;
+      margin:0 auto;
+      padding:0 14px 24px;
+      color: rgba(169,180,214,.95);
+      font-size:12.5px;
+      line-height:1.5;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">TG</div>
+        <div>
+          <h1>RPG de Tabelas e Gráficos</h1>
+          <p>Gameficação para <strong>Estatística Computacional</strong> — prática de tabelas de frequência, distribuição em classes e escolha de gráficos.</p>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="chip" title="Pontos acumulados">
+          <span class="k">Pontos</span>
+          <span class="v" id="uiScore">0</span>
+        </div>
+        <div class="chip" title="Nível do personagem">
+          <span class="k">Nível</span>
+          <span class="v" id="uiLevel">1</span>
+        </div>
+        <div class="chip" title="Erros/vida">
+          <span class="k">Vida</span>
+          <span class="v" id="uiHP">100</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="grid">
+      <!-- COLUNA PRINCIPAL -->
+      <section class="card" aria-label="Missão">
+        <div class="card-h">
+          <div>
+            <h2>Missão do Painel de Dados</h2>
+            <div class="sub" id="uiStageDesc">Prepare-se para organizar dados brutos em tabelas e transformá-los em gráficos.</div>
+          </div>
+          <div class="badge" id="uiQuestTag">Fase 1</div>
+        </div>
+
+        <div class="content">
+          <div class="barwrap">
+            <div class="hpRow">
+              <span>Progresso da vida</span>
+              <span><strong id="uiHPLabel">100</strong>/100</span>
+            </div>
+            <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
+              <span id="uiHPBar" style="width:100%"></span>
+            </div>
+          </div>
+
+          <div style="height:14px"></div>
+
+          <div class="quest" id="questArea">
+            <p class="prompt" id="uiPrompt"></p>
+            <p class="hint" id="uiHint"></p>
+
+            <div class="inputRow">
+              <div class="field">
+                <label for="answerInput">Resposta (números, listas separadas por vírgula ou palavra, sem espaços extras)</label>
+                <input id="answerInput" type="text" inputmode="text" autocomplete="off" placeholder="Ex.: 36, 4,6, 0,7, poisson ..." />
+              </div>
+
+              <div class="field" style="flex:0 0 190px; min-width:190px;">
+                <label for="modeSelect">Verificação</label>
+                <select id="modeSelect" aria-label="Modo de verificação">
+                  <option value="strict" selected>Estrita (valor exato)</option>
+                  <option value="loose">Flexível (vírgula decimal, acentos, maiúsc./minúsc. e pequena tolerância)</option>
+                </select>
+                <div class="smallNote">Na verificação estrita o valor deve coincidir (<span class="kbd">0,7</span> e <span class="kbd">0.7</span> são aceitos). No modo flexível ignoramos maiúsculas, acentos, % e pequenas diferenças de arredondamento.</div>
+              </div>
+            </div>
+
+            <div class="btns">
+              <button id="btnCheck" type="button">Conferir</button>
+              <button id="btnSkip" class="btnSecondary" type="button">Pular (-vida)</button>
+              <button id="btnHelp" class="btnSecondary" type="button">Ajuda</button>
+              <button id="btnReset" class="btnSecondary" type="button">Reiniciar</button>
+              <a class="btnSecondary" href="index.html" style="text-decoration:none;padding:12px 14px;border-radius:12px;font-weight:900;border:1px solid rgba(255,255,255,.16);font-size:13.3px;color:#e8eefc">← Plataforma</a>
+            </div>
+
+            <div id="feedback" class="feedback" style="display:none" aria-live="polite"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- COLUNA LATERAL -->
+      <aside class="card" aria-label="Painel de progresso">
+        <div class="card-h">
+          <div>
+            <h2>Mapa de Aventuras</h2>
+            <div class="sub">Cada fase treina um conceito da aula e fortalece sua "intuição visual".</div>
+          </div>
+        </div>
+
+        <div class="content">
+          <div class="sideList">
+            <div class="sideItem">
+              <div class="t">
+                <span>Missões concluídas</span>
+                <span class="kbd" id="uiDoneCount">0/0</span>
+              </div>
+              <div class="desc">
+                Progredir corretamente aumenta pontos e recupera um pouco de vida.
+              </div>
+            </div>
+
+            <div class="sideItem">
+              <div class="t">
+                <span>Objetivos</span>
+                <span class="kbd">Fa, Fr, Fac, k, Gráficos</span>
+              </div>
+              <div class="desc">
+                Inclui dados brutos, tabelas de frequência, classes, frequências relativa/acumulada e os gráficos de linhas, colunas, barras, pizza, histograma e polígono.
+              </div>
+            </div>
+
+            <div class="sideItem">
+              <div class="t">
+                <span>Trilha</span>
+                <span class="kbd" id="uiCurrentQuest">—</span>
+              </div>
+              <div class="desc">
+                <ol class="progressList" id="uiProgressList"></ol>
+              </div>
+            </div>
+
+            <div class="sideItem">
+              <div class="t">
+                <span>Como jogar</span>
+                <span class="kbd">Rápido</span>
+              </div>
+              <div class="desc">
+                Responda o valor pedido. Acerte para ganhar pontos. Se errar, sua vida diminui.
+              </div>
+              <div class="smallNote">
+                Atalhos: pressione <span class="kbd">Enter</span> para conferir.
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer>
+    Material de apoio da disciplina de Estatística Computacional — uso formativo, não substitui a atividade avaliativa oficial do Moodle.
+  </footer>
+
+   <!-- MODAL AJUDA -->
+  <div class="modalOverlay" id="helpModal" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+    <div class="modal">
+      <h3 id="helpTitle">Ajuda rápida (Tabelas e Gráficos)</h3>
+      <div class="modalBody" id="helpBody">
+        <!-- preenchido via JS -->
+      </div>
+      <div class="modalFooter">
+        <button type="button" class="btnSecondary" id="btnCloseHelp">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const CFG = {"revision": "revise frequências (Fa, Fr, Fac), a construção de classes e a escolha do gráfico adequado.", "total": 20};
+    const QUESTS = [
+  {
+    "title": "Tipos de dados",
+    "prompt": "Dados que representam categorias ou qualidades (como cor, gênero e profissão) são qualitativos ou quantitativos?",
+    "hint": "Não são medidas numéricas, e sim atributos.",
+    "answer": "qualitativos",
+    "accepted": [
+      "qualitativos",
+      "qualitativo",
+      "qualitativa",
+      "qualitativas"
+    ],
+    "num": null,
+    "tol": 0.0,
+    "list": false,
+    "explanation": "Dados qualitativos representam qualidades, categorias ou características; quantitativos representam valores numéricos mensuráveis.",
+    "tip": "Conceito: a Estatística coleta, analisa, interpreta e apresenta dados, transformando dados brutos em informação para decisão.",
+    "method": "Atributo/categoria → qualitativo; número medido ou contado → quantitativo.",
+    "id": "1",
+    "tag": "Fase 1"
+  },
+  {
+    "title": "Frequência acumulada",
+    "prompt": "Como se chama a frequência que soma as frequências até determinado valor: absoluta, relativa ou acumulada?",
+    "hint": "O seu valor máximo é igual ao total de observações (ou a 100%).",
+    "answer": "acumulada",
+    "accepted": [
+      "acumulada",
+      "frequenciaacumulada"
+    ],
+    "num": null,
+    "tol": 0.0,
+    "list": false,
+    "explanation": "A frequência acumulada (Fac) soma as frequências até a classe considerada.",
+    "tip": "Conceito: Fa — quantas vezes o valor aparece; Fr — proporção em relação ao total (em %); Fac — soma das frequências até determinado valor.",
+    "method": "Fa = contagem | Fr = Fa/total | Fac = soma progressiva.",
+    "id": "2",
+    "tag": "Fase 2"
+  },
+  {
+    "title": "Tabela de frequência simples",
+    "prompt": "Encaminhamentos na secretaria: X = {4, 4, 2, 5, 1, 4, 1, 4, 2, 2, 0, 6, 5, 4, 2, 2, 3, 3, 4, 9, 4, 2} (n = 22). Qual a frequência absoluta (Fa) do valor 4?",
+    "hint": "Conte quantas vezes o número 4 aparece na lista.",
+    "answer": "7",
+    "accepted": [
+      "7"
+    ],
+    "num": 7,
+    "tol": 0.0,
+    "list": false,
+    "explanation": "O valor 4 aparece 7 vezes (Fa = 7), logo Fr = 7/22 ≈ 31,8%.",
+    "tip": "Conceito: dados brutos são difíceis de interpretar; a tabela de frequência organiza os valores e facilita a visualização de padrões.",
+    "method": "1) Percorra a lista<br>2) Marque cada 4<br>3) Some",
+    "id": "3",
+    "tag": "Fase 3"
+  },
+  {
+    "title": "Número de classes (n ≤ 100)",
+    "prompt": "Em um levantamento com n = 20 observações, o número de classes pela regra k = √n (arredondado para o inteiro imediatamente acima) é:",
+    "hint": "√20 ≈ 4,47.",
+    "answer": "5",
+    "accepted": [
+      "5"
+    ],
+    "num": 5,
+    "tol": 0.0,
+    "list": false,
+    "explanation": "k = √20 ≈ 4,47 → arredonda-se para 5 classes.",
+    "tip": "Conceito: classes são intervalos numéricos em que os dados são agrupados; k = √n para n ≤ 100 e k = 5·log n para n > 100.",
+    "method": "1) Calcule √n<br>2) Arredonde para cima",
+    "id": "4",
+    "tag": "Fase 4"
+  },
+  {
+    "title": "Número de classes (n > 100)",
+    "prompt": "Com n = 200 observações, pela regra k = 5·log n (log na base 10), arredondado para cima, quantas classes?",
+    "hint": "log(200) ≈ 2,301.",
+    "answer": "12",
+    "accepted": [
+      "12"
+    ],
+    "num": 12,
+    "tol": 0.0,
+    "list": false,
+    "explanation": "k = 5 × 2,301 ≈ 11,51 → 12 classes.",
+    "tip": "Conceito: para n > 100 usa-se k = 5·log n.",
+    "method": "1) log10(200) ≈ 2,301<br>2) × 5<br>3) Arredonde para cima",
+    "id": "5",
+    "tag": "Fase 5"
+  },
+  {
+    "title": "Amplitude de classe",
+    "prompt": "Número de empresas por cidade: mínimo 81 e máximo 106, com k = 5 classes. Qual a amplitude de classe c = AT/k, em que AT = máximo − mínimo?",
+    "hint": "AT = 106 − 81 = 25.",
+    "answer": "5",
+    "accepted": [
+      "5"
+    ],
+    "num": 5,
+    "tol": 0.0,
+    "list": false,
+    "explanation": "AT = 25 e c = 25/5 = 5 → classes [81;86[, [86;91[, ..., [101;106].",
+    "tip": "Conceito: tipos de intervalos — abertos (limites não pertencem à classe), fechados (pertencem) e mistos (um pertence e o outro não).",
+    "method": "1) AT = máx − mín<br>2) c = AT/k",
+    "id": "6",
+    "tag": "Fase 6"
+  },
+  {
+    "title": "Frequência relativa acumulada",
+    "prompt": "Distribuição com Fa = 3, 4, 1, 7 e 5 (n = 20). Qual a frequência relativa acumulada (%) até a 3ª classe? Responda apenas o número.",
+    "hint": "Fac até a 3ª classe = 3 + 4 + 1 = 8; depois divida por 20.",
+    "answer": "40",
+    "accepted": [
+      "40"
+    ],
+    "num": 40,
+    "tol": 0.0,
+    "list": false,
+    "explanation": "Fac = 8 → 8/20 = 0,40 = 40%.",
+    "tip": "Conceito: a frequência relativa acumulada máxima deve ser 100% e a acumulada absoluta, o total de observações.",
+    "method": "1) Some as Fa até a classe<br>2) Divida pelo total<br>3) × 100",
+    "id": "7",
+    "tag": "Fase 7"
+  },
+  {
+    "title": "Frequência relativa",
+    "prompt": "Uma classe tem Fa = 18 em um total de n = 72. Qual a frequência relativa em %? Responda apenas o número.",
+    "hint": "Fr = Fa / n.",
+    "answer": "25",
+    "accepted": [
+      "25"
+    ],
+    "num": 25,
+    "tol": 0.0,
+    "list": false,
+    "explanation": "Fr = 18/72 = 0,25 = 25%.",
+    "tip": "Conceito: Fr_i = Fa_i / ΣFa; multiplique por 100 para obter porcentagem.",
+    "method": "Divida Fa pelo total e multiplique por 100.",
+    "id": "8",
+    "tag": "Fase 8"
+  },
+  {
+    "title": "Requisitos de um bom gráfico",
+    "prompt": "Qual requisito de um bom gráfico exige apresentar os dados de forma verdadeira, sem distorções: simplicidade, clareza ou veracidade?",
+    "hint": "Um eixo truncado que exagera diferenças fere esse requisito.",
+    "answer": "veracidade",
+    "accepted": [
+      "veracidade"
+    ],
+    "num": null,
+    "tol": 0.0,
+    "list": false,
+    "explanation": "Veracidade: os dados devem ser apresentados sem distorções. Simplicidade evita excesso de cores; clareza exige referências para todos os dados.",
+    "tip": "Conceito: os três requisitos de um bom gráfico são simplicidade, clareza e veracidade.",
+    "method": "Associe 'verdade' ↔ 'veracidade'.",
+    "id": "9",
+    "tag": "Fase 9"
+  },
+  {
+    "title": "Gráfico de linhas",
+    "prompt": "Para mostrar a evolução das vendas ao longo dos meses, qual o tipo de gráfico mais adequado: linhas, pizza ou histograma?",
+    "hint": "Séries temporais pedem um gráfico que una pontos sucessivos.",
+    "answer": "linhas",
+    "accepted": [
+      "linhas",
+      "grafico de linhas",
+      "graficodelinhas",
+      "gráficodelinhas"
+    ],
+    "num": null,
+    "tol": 0.0,
+    "list": false,
+    "explanation": "O gráfico de linhas (ou de segmentos) é ideal para séries temporais e mostra a evolução do fenômeno no tempo.",
+    "tip": "Conceito: linhas — valores ao longo do tempo; colunas/barras — comparação entre categorias; pizza — composição percentual; histograma — distribuição de dados contínuos.",
+    "method": "Tempo no eixo horizontal → linhas.",
+    "id": "10",
+    "tag": "Fase 10"
+  },
+  {
+    "title": "Série temporal: total semanal",
+    "prompt": "Acidentes de trânsito na 1ª semana (dom a sáb): 1865, 1729, 1320, 1398, 1454, 1673, 1577. Qual o total da semana?",
+    "hint": "Some os sete valores.",
+    "answer": "11016",
+    "accepted": [
+      "11016",
+      "11.016"
+    ],
+    "num": 11016,
+    "tol": 0.0,
+    "list": false,
+    "explanation": "1865 + 1729 + 1320 + 1398 + 1454 + 1673 + 1577 = 11.016.",
+    "tip": "Conceito: no gráfico de linhas de acidentes por dia da semana, cada linha representa uma semana.",
+    "method": "Some os sete valores com atenção.",
+    "id": "11",
+    "tag": "Fase 11"
+  },
+  {
+    "title": "Colunas e barras",
+    "prompt": "Quando há muitas categorias ou os nomes delas são longos, qual é o gráfico mais adequado: colunas (verticais) ou barras (horizontais)?",
+    "hint": "Nomes longos cabem melhor na horizontal.",
+    "answer": "barras",
+    "accepted": [
+      "barras",
+      "graficodebarras",
+      "gráficodebarras"
+    ],
+    "num": null,
+    "tol": 0.0,
+    "list": false,
+    "explanation": "O gráfico de barras (horizontal) é especialmente útil com muitas categorias ou nomes longos.",
+    "tip": "Conceito: o gráfico de barras é um gráfico de colunas rotacionado; colunas servem para poucas categorias.",
+    "method": "Muitas categorias/nomes longos → barras.",
+    "id": "12",
+    "tag": "Fase 12"
+  },
+  {
+    "title": "Gráfico de pizza: ângulo",
+    "prompt": "Em um gráfico de pizza, uma categoria representa 35% do total. Qual o ângulo do seu setor circular, em graus? Responda apenas o número.",
+    "hint": "35% de 360°.",
+    "answer": "126",
+    "accepted": [
+      "126"
+    ],
+    "num": 126,
+    "tol": 0.0,
+    "list": false,
+    "explanation": "0,35 × 360° = 126°.",
+    "tip": "Conceito: no gráfico de pizza (setores), cada fatia é proporcional ao valor da categoria; a soma das fatias é 100% (360°).",
+    "method": "Ângulo = Fr × 360°.",
+    "id": "13",
+    "tag": "Fase 13"
+  },
+  {
+    "title": "Gráfico de pizza: limite de categorias",
+    "prompt": "Para manter a clareza, o gráfico de pizza é recomendado para no máximo 6 a 7 categorias. Qual o valor máximo? Responda apenas o número.",
+    "hint": "O limite superior do intervalo citado.",
+    "answer": "7",
+    "accepted": [
+      "7"
+    ],
+    "num": 7,
+    "tol": 0.0,
+    "list": false,
+    "explanation": "Recomenda-se no máximo 6-7 categorias; acima disso, a pizza perde a clareza.",
+    "tip": "Conceito: limitações da pizza — difícil comparar tamanhos precisos e inadequada para muitas categorias.",
+    "method": "Use o maior valor do intervalo recomendado.",
+    "id": "14",
+    "tag": "Fase 14"
+  },
+  {
+    "title": "Histograma",
+    "prompt": "No histograma, as barras são adjacentes (sem espaços) ou separadas?",
+    "hint": "Representam dados contínuos em classes consecutivas.",
+    "answer": "adjacentes",
+    "accepted": [
+      "adjacentes",
+      "unidas",
+      "juntas",
+      "adjacente"
+    ],
+    "num": null,
+    "tol": 0.0,
+    "list": false,
+    "explanation": "As barras do histograma são unidas, sem espaços, para representar a continuidade dos dados.",
+    "tip": "Conceito: histograma representa a distribuição de frequências de dados contínuos; largura = intervalo de classe, altura = frequência.",
+    "method": "Compare com o gráfico de colunas, que tem espaços.",
+    "id": "15",
+    "tag": "Fase 15"
+  },
+  {
+    "title": "Leitura de histograma",
+    "prompt": "Classes de acidentes por dia (1200–1400, 1400–1600, 1600–1800, 1800–2000, 2000–2200, 2200–2400) com frequências 4, 7, 5, 3, 1 e 1. Em quantos dias houve 1800 acidentes ou mais?",
+    "hint": "Some as frequências das três últimas classes.",
+    "answer": "5",
+    "accepted": [
+      "5"
+    ],
+    "num": 5,
+    "tol": 0.0,
+    "list": false,
+    "explanation": "3 + 1 + 1 = 5 dias (5/21 ≈ 23,8% do total).",
+    "tip": "Conceito: o histograma permite visualizar a forma da distribuição (simétrica, assimétrica, bimodal) e identificar valores atípicos.",
+    "method": "Some as frequências das classes pedidas.",
+    "id": "16",
+    "tag": "Fase 16"
+  },
+  {
+    "title": "Polígono de frequências: ponto médio",
+    "prompt": "Para construir o polígono de frequências, usa-se o ponto médio de cada classe. Qual o ponto médio da classe 1200–1400?",
+    "hint": "(1200 + 1400)/2.",
+    "answer": "1300",
+    "accepted": [
+      "1300",
+      "1.300"
+    ],
+    "num": 1300,
+    "tol": 0.0,
+    "list": false,
+    "explanation": "(1200 + 1400)/2 = 1.300.",
+    "tip": "Conceito: o polígono liga os pontos médios das classes do histograma, na altura da frequência.",
+    "method": "Ponto médio = (limite inferior + limite superior)/2.",
+    "id": "17",
+    "tag": "Fase 17"
+  },
+  {
+    "title": "Polígono de frequências: extremidades",
+    "prompt": "Para fechar o polígono nas extremidades, ele é estendido até o eixo horizontal. Qual a frequência nas duas extremidades? Responda apenas o número.",
+    "hint": "O polígono 'desce' até o eixo.",
+    "answer": "0",
+    "accepted": [
+      "0"
+    ],
+    "num": 0,
+    "tol": 0.0,
+    "list": false,
+    "explanation": "As extremidades têm frequência 0 (o polígono toca o eixo horizontal).",
+    "tip": "Conceito: passos — determinar pontos médios, marcar as frequências, conectar com segmentos e estender até o eixo nas extremidades.",
+    "method": "No eixo horizontal, a frequência vale 0.",
+    "id": "18",
+    "tag": "Fase 18"
+  },
+  {
+    "title": "Aplicação: distribuição de dados contínuos",
+    "prompt": "Para visualizar a distribuição dos tempos de execução (variável contínua) de 500 execuções de um programa, qual gráfico usar: histograma ou pizza?",
+    "hint": "Pizza mostra composição percentual de poucas categorias.",
+    "answer": "histograma",
+    "accepted": [
+      "histograma"
+    ],
+    "num": null,
+    "tol": 0.0,
+    "list": false,
+    "explanation": "O histograma mostra a distribuição de dados contínuos em classes.",
+    "tip": "Conceito: a estatística visual é usada em mineração de dados, IA/ML e business intelligence.",
+    "method": "Dados contínuos em classes → histograma.",
+    "id": "19",
+    "tag": "Fase 19"
+  },
+  {
+    "title": "Aplicação: composição percentual",
+    "prompt": "Para mostrar a participação percentual de 5 linguagens de programação em um repositório, qual gráfico é recomendado: pizza ou linhas?",
+    "hint": "Composição percentual de um todo.",
+    "answer": "pizza",
+    "accepted": [
+      "pizza",
+      "setores",
+      "graficodesetores",
+      "gráficodepizza",
+      "graficodepizza"
+    ],
+    "num": null,
+    "tol": 0.0,
+    "list": false,
+    "explanation": "O gráfico de pizza (setores) mostra a composição percentual de um todo com poucas categorias.",
+    "tip": "Conceito: aplicações da pizza — orçamento, market share, pesquisas de opinião e distribuição demográfica.",
+    "method": "Parte do todo → pizza.",
+    "id": "20",
+    "tag": "Fase 20"
+  }
+];
+
+    const state = { idx:0, score:0, level:1, hp:100, done:new Array(QUESTS.length).fill(false), streak:0 };
+
+    const $ = id => document.getElementById(id);
+    const uiScore=$("uiScore"), uiLevel=$("uiLevel"), uiHP=$("uiHP"), uiHPBar=$("uiHPBar"), uiHPLabel=$("uiHPLabel"),
+          uiPrompt=$("uiPrompt"), uiHint=$("uiHint"), uiQuestTag=$("uiQuestTag"), uiStageDesc=$("uiStageDesc"),
+          answerInput=$("answerInput"), modeSelect=$("modeSelect"), feedback=$("feedback"), uiDoneCount=$("uiDoneCount"),
+          uiProgressList=$("uiProgressList"), uiCurrentQuest=$("uiCurrentQuest"), helpModal=$("helpModal"), helpBody=$("helpBody");
+
+    function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+    function rich(s){ return esc(s).replace(/\n/g,"<br>"); }
+
+    function stripAccents(s){ return s.normalize("NFD").replace(/[̀-ͯ]/g,""); }
+    function normalizeAnswer(str){
+      if (str === null || str === undefined) return "";
+      return stripAccents(String(str).trim().replace(/\s+/g,"").toLowerCase().replace(/[−–—]/g,"-"));
+    }
+    function normalizeLoose(str, isList){
+      let s = normalizeAnswer(str);
+      s = s.replace(/^p\(.*?\)=/, "");
+      s = s.replace(/[{}()%°]/g, "");
+      if (!isList && /^-?\d+,\d+$/.test(s)) s = s.replace(",", ".");
+      return s;
+    }
+
+    function setFeedback(type, title, msg){
+      feedback.style.display = "block";
+      feedback.classList.remove("good","bad");
+      feedback.classList.add(type === "good" ? "good" : "bad");
+      feedback.innerHTML = `<div class="title">${type === "good" ? "✅ Acertou" : "🛑 Quase lá"}</div><p><strong>${esc(title)}</strong><br>${rich(msg)}</p>`;
+    }
+
+    function lockInputs(lock){
+      answerInput.disabled = lock; modeSelect.disabled = lock;
+      $("btnCheck").disabled = lock; $("btnSkip").disabled = lock;
+    }
+
+    function updateUI(){
+      uiScore.textContent = state.score;
+      uiLevel.textContent = state.level;
+      uiHP.textContent = state.hp;
+      uiHPLabel.textContent = Math.max(0, state.hp);
+      uiHPBar.style.width = Math.max(0, Math.min(100, state.hp)) + "%";
+
+      uiProgressList.innerHTML = "";
+      QUESTS.forEach((q, i) => {
+        const li = document.createElement("li");
+        li.innerHTML = `<strong>Fase ${i+1}.</strong> ${state.done[i] ? "✅ Concluída" : "⏳ Pendente"}`;
+        uiProgressList.appendChild(li);
+      });
+      uiDoneCount.textContent = `${state.done.filter(Boolean).length}/${QUESTS.length}`;
+      uiCurrentQuest.textContent = `Atual: Fase ${state.idx+1}`;
+
+      const q = QUESTS[state.idx];
+      uiQuestTag.textContent = q.tag;
+      uiPrompt.textContent = q.prompt;
+      uiHint.textContent = "Dica: " + q.hint;
+      uiStageDesc.textContent = `${q.title} — tente responder com precisão.`;
+    }
+
+    function endGameIfNeeded(){
+      if (state.hp <= 0){
+        const completed = state.done.filter(Boolean).length;
+        setFeedback("bad", "Sua vida chegou a 0",
+          `Fim de jogo! Você concluiu ${completed} de ${QUESTS.length}. Sugestão: ${CFG.revision} Use "Reiniciar" para tentar de novo.`);
+        lockInputs(true);
+        return true;
+      }
+      return false;
+    }
+
+    function nextQuest(){
+      const total = QUESTS.length;
+      let steps = 0, i = (state.idx + 1) % total;
+      while (state.done[i] && steps < total){ i = (i + 1) % total; steps++; }
+      state.idx = i;
+      answerInput.value = "";
+      feedback.style.display = "none";
+      updateUI();
+      answerInput.focus();
+    }
+
+    function winCheck(){
+      if (state.done.every(Boolean)){
+        setFeedback("good", "🎉 Missão Final concluída!",
+          `Você finalizou todas as ${QUESTS.length} fases com pontuação total de ${state.score} e nível ${state.level}. Parabéns!`);
+        lockInputs(true);
+      }
+    }
+
+    function correctReward(){
+      const streakBonus = Math.min(60, state.streak * 10);
+      state.score += 120 + streakBonus;
+      state.hp = Math.min(100, state.hp + 10 + Math.min(10, state.streak));
+      state.level = Math.max(state.level, 1 + Math.floor(state.score / 600));
+    }
+    function wrongPenalty(){ state.streak = 0; state.hp -= 18; }
+    function skipPenalty(){ state.streak = 0; state.hp -= 10; }
+
+    function isAccepted(userAns){
+      const q = QUESTS[state.idx];
+      const strict = modeSelect.value === "strict";
+      if (strict){
+        return q.accepted.map(normalizeAnswer).includes(normalizeAnswer(userAns));
+      }
+      const n = normalizeLoose(userAns, q.list);
+      if (q.accepted.map(a => normalizeLoose(a, q.list)).includes(n)) return true;
+      if (q.num !== null && q.num !== undefined && /^-?\d+(\.\d+)?$/.test(n)){
+        const tol = (q.tol || 0) + 1e-9;
+        return Math.abs(parseFloat(n) - q.num) <= tol;
+      }
+      return false;
+    }
+
+    $("btnCheck").addEventListener("click", () => {
+      if (answerInput.disabled) return;
+      const user = answerInput.value;
+      if (!user || !user.trim()){ setFeedback("bad", "Entrada vazia", "Digite sua resposta antes de conferir."); return; }
+      const q = QUESTS[state.idx];
+      if (isAccepted(user)){
+        state.done[state.idx] = true;
+        state.streak += 1;
+        correctReward();
+        setFeedback("good", "Resposta correta!", q.explanation);
+        updateUI();
+        setTimeout(() => {
+          winCheck();
+          if (!endGameIfNeeded() && !state.done.every(Boolean)) nextQuest();
+        }, 650);
+      } else {
+        wrongPenalty();
+        setFeedback("bad", "Resposta incorreta", "Tente novamente ou use a Ajuda para revisar o conceito.");
+        updateUI();
+        endGameIfNeeded();
+      }
+    });
+
+    $("btnSkip").addEventListener("click", () => {
+      if (answerInput.disabled) return;
+      const q = QUESTS[state.idx];
+      skipPenalty();
+      setFeedback("bad", "Pulou a missão", `A resposta correta era: ${q.answer}. (Você pode revisar depois pela Ajuda.)`);
+      updateUI();
+      if (endGameIfNeeded()) return;
+      setTimeout(() => nextQuest(), 850);
+    });
+
+    $("btnReset").addEventListener("click", () => {
+      state.idx = 0; state.score = 0; state.level = 1; state.hp = 100; state.streak = 0;
+      state.done = new Array(QUESTS.length).fill(false);
+      lockInputs(false);
+      answerInput.value = ""; feedback.style.display = "none";
+      updateUI(); answerInput.focus();
+    });
+
+    $("btnHelp").addEventListener("click", () => {
+      helpBody.innerHTML = buildHelp(QUESTS[state.idx]);
+      helpModal.classList.add("show");
+    });
+    $("btnCloseHelp").addEventListener("click", () => helpModal.classList.remove("show"));
+    helpModal.addEventListener("click", e => { if (e.target === helpModal) helpModal.classList.remove("show"); });
+    answerInput.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); $("btnCheck").click(); } });
+
+    function buildHelp(q){
+      const n = QUESTS.findIndex(x => x.id === q.id) + 1;
+      return `<strong>Fase ${n} — receita rápida</strong>
+              <div>${rich(q.tip)}</div>
+              <div><strong>Como fazer:</strong><br>${rich(q.method)}</div>
+              <div class="smallNote">Modo de verificação atual: <strong>${modeSelect.value === "strict" ? "Estrita" : "Flexível"}</strong>.</div>`;
+    }
+
+    (function init(){
+      updateUI();
+      answerInput.focus();
+      feedback.style.display = "none";
+    })();
+  </script>
+</body>
+</html>

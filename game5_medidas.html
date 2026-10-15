@@ -1,0 +1,1098 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RPG das Medidas Estatísticas</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#111b33;
+      --panel2:#0f1730;
+      --text:#e8eefc;
+      --muted:#a9b4d6;
+      --accent:#6ae4ff;
+      --accent2:#a78bfa;
+      --good:#34d399;
+      --bad:#fb7185;
+      --warn:#fbbf24;
+      --border:rgba(255,255,255,.10);
+      --shadow: 0 10px 35px rgba(0,0,0,.35);
+      --radius: 16px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+      background: radial-gradient(1200px 500px at 10% 0%, rgba(106,228,255,.18), transparent 60%),
+                  radial-gradient(900px 450px at 90% 10%, rgba(167,139,250,.18), transparent 55%),
+                  linear-gradient(180deg, #070c16 0%, var(--bg) 65%, #070c16 100%);
+      color:var(--text);
+      min-height:100vh;
+    }
+    header{
+      padding:18px 14px 10px;
+      max-width:1100px;
+      margin:0 auto;
+    }
+    .topbar{
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+    .brand{
+      display:flex; gap:12px; align-items:center;
+    }
+    .logo{
+      width:44px; height:44px; border-radius:14px;
+      background: linear-gradient(135deg, rgba(106,228,255,.35), rgba(167,139,250,.35));
+      border:1px solid var(--border);
+      box-shadow: var(--shadow);
+      display:grid; place-items:center;
+      font-weight:800;
+      letter-spacing:.5px;
+    }
+    .brand h1{
+      margin:0;
+      font-size:16px;
+      line-height:1.2;
+    }
+    .brand p{
+      margin:3px 0 0;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .stats{
+      display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;
+    }
+    .chip{
+      background: rgba(255,255,255,.06);
+      border:1px solid var(--border);
+      padding:10px 12px;
+      border-radius:999px;
+      display:flex; gap:10px; align-items:center;
+      box-shadow: 0 8px 20px rgba(0,0,0,.25);
+      white-space:nowrap;
+    }
+    .chip .k{
+      font-size:12px; color:var(--muted);
+    }
+    .chip .v{
+      font-weight:800; font-size:13px;
+      color:var(--accent);
+    }
+    main{
+      max-width:1100px;
+      margin:0 auto;
+      padding:10px 14px 28px;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1.3fr .9fr;
+      gap:14px;
+      align-items:start;
+    }
+    @media (max-width: 900px){
+      .grid{ grid-template-columns:1fr; }
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card .card-h{
+      padding:14px 14px 10px;
+      border-bottom:1px solid rgba(255,255,255,.07);
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+      flex-wrap:wrap;
+    }
+    .card .card-h h2{
+      margin:0;
+      font-size:14px;
+      letter-spacing:.2px;
+    }
+    .card .card-h .sub{
+      margin:6px 0 0;
+      color:var(--muted);
+      font-size:12.5px;
+      max-width:680px;
+    }
+    .content{
+      padding:14px;
+    }
+
+    /* RPG UI */
+    .barwrap{
+      display:grid;
+      gap:10px;
+    }
+    .hpRow{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      color:var(--muted);
+      font-size:12.5px;
+    }
+    .bar{
+      height:12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      overflow:hidden;
+    }
+    .bar > span{
+      display:block;
+      height:100%;
+      width:50%;
+      background: linear-gradient(90deg, rgba(106,228,255,.9), rgba(167,139,250,.85));
+      border-radius:999px;
+      transition: width .25s ease;
+    }
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    /* Perguntas */
+    .quest{
+      display:grid;
+      gap:12px;
+    }
+    .badge{
+      display:inline-flex;
+      padding:6px 10px;
+      border-radius:999px;
+      background: rgba(106,228,255,.12);
+      border:1px solid rgba(106,228,255,.25);
+      color: var(--accent);
+      font-size:12px;
+      font-weight:800;
+    }
+    .prompt{
+      font-size:15px;
+      line-height:1.45;
+      margin:0;
+    }
+    .hint{
+      margin:0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.4;
+      background: rgba(255,255,255,.04);
+      border:1px dashed rgba(255,255,255,.14);
+      padding:10px 12px;
+      border-radius: 12px;
+    }
+    .inputRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:flex-end;
+    }
+    label{
+      display:block;
+      font-size:12.5px;
+      color:var(--muted);
+      margin:0 0 6px 2px;
+    }
+    input[type="text"], select, textarea{
+      width:100%;
+      background: rgba(0,0,0,.18);
+      color: var(--text);
+      border:1px solid rgba(255,255,255,.14);
+      border-radius: 12px;
+      padding:12px 12px;
+      outline:none;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.15);
+    }
+    input[type="text"]::placeholder, textarea::placeholder{
+      color: rgba(232,238,252,.45);
+    }
+    .field{
+      flex: 1 1 260px;
+      min-width: 220px;
+    }
+    .btns{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    button{
+      cursor:pointer;
+      border:none;
+      border-radius: 12px;
+      padding:12px 14px;
+      font-weight:900;
+      letter-spacing:.2px;
+      color:#07101f;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow: 0 10px 22px rgba(106,228,255,.15);
+      transition: transform .08s ease, filter .15s ease;
+      flex: 0 0 auto;
+    }
+    button:active{ transform: translateY(1px); }
+    .btnSecondary{
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      border:1px solid rgba(255,255,255,.16);
+      box-shadow:none;
+    }
+    .btnDanger{
+      background: rgba(251,113,133,.16);
+      color: var(--bad);
+      border:1px solid rgba(251,113,133,.35);
+      box-shadow:none;
+    }
+    .feedback{
+      border-radius: 14px;
+      padding:12px 12px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+    }
+    .feedback.good{
+      border-color: rgba(52,211,153,.35);
+      background: rgba(52,211,153,.12);
+    }
+    .feedback.bad{
+      border-color: rgba(251,113,133,.35);
+      background: rgba(251,113,133,.12);
+    }
+    .feedback .title{
+      font-weight:1000;
+      margin:0;
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    .feedback p{
+      margin:6px 0 0;
+      color: var(--muted);
+      font-size:13px;
+      line-height:1.4;
+    }
+    .smallNote{
+      color: var(--muted);
+      font-size:12.5px;
+      line-height:1.4;
+      margin-top:10px;
+    }
+
+    /* Coluna lateral */
+    .sideList{
+      display:grid;
+      gap:10px;
+    }
+    .sideItem{
+      background: rgba(0,0,0,.14);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: 14px;
+      padding:12px 12px;
+    }
+    .sideItem .t{
+      display:flex; justify-content:space-between; gap:10px; align-items:center;
+      font-weight:1000;
+      font-size:13px;
+    }
+    .sideItem .desc{
+      color:var(--muted);
+      font-size:12.5px;
+      line-height:1.4;
+      margin-top:6px;
+    }
+    .progressList{
+      margin:0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size:13px;
+      line-height:1.6;
+    }
+    .progressList strong{
+      color: var(--text);
+    }
+
+    /* Modal */
+    .modalOverlay{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,.55);
+      display:none;
+      place-items:center;
+      padding:18px;
+      z-index:999;
+    }
+    .modalOverlay.show{ display:grid; }
+    .modal{
+      width:min(720px, 100%);
+      background: linear-gradient(180deg, rgba(17,27,51,.98), rgba(10,16,34,.98));
+      border:1px solid rgba(255,255,255,.14);
+      border-radius: 18px;
+      box-shadow: 0 40px 90px rgba(0,0,0,.55);
+      overflow:hidden;
+    }
+    .modal h3{
+      margin:0;
+      padding:14px 14px 10px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      font-size:14px;
+      letter-spacing:.2px;
+    }
+    .modal .modalBody{
+      padding:14px;
+      color:var(--muted);
+      font-size:13.5px;
+      line-height:1.55;
+      display:grid;
+      gap:10px;
+    }
+    .modal .modalFooter{
+      padding:14px;
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      border-top:1px solid rgba(255,255,255,.08);
+    }
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      background: rgba(255,255,255,.07);
+      border:1px solid rgba(255,255,255,.14);
+      padding:2px 8px;
+      border-radius: 10px;
+      color: var(--text);
+      font-size:12px;
+      white-space:nowrap;
+    }
+    footer{
+      max-width:1100px;
+      margin:0 auto;
+      padding:0 14px 24px;
+      color: rgba(169,180,214,.95);
+      font-size:12.5px;
+      line-height:1.5;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">MD</div>
+        <div>
+          <h1>RPG das Medidas Estatísticas</h1>
+          <p>Gameficação para <strong>Estatística Computacional</strong> — prática de média, mediana, variância, desvio padrão e suas aplicações.</p>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="chip" title="Pontos acumulados">
+          <span class="k">Pontos</span>
+          <span class="v" id="uiScore">0</span>
+        </div>
+        <div class="chip" title="Nível do personagem">
+          <span class="k">Nível</span>
+          <span class="v" id="uiLevel">1</span>
+        </div>
+        <div class="chip" title="Erros/vida">
+          <span class="k">Vida</span>
+          <span class="v" id="uiHP">100</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="grid">
+      <!-- COLUNA PRINCIPAL -->
+      <section class="card" aria-label="Missão">
+        <div class="card-h">
+          <div>
+            <h2>Missão do Centro dos Dados</h2>
+            <div class="sub" id="uiStageDesc">Prepare-se para resumir dados com medidas de posição e de dispersão.</div>
+          </div>
+          <div class="badge" id="uiQuestTag">Fase 1</div>
+        </div>
+
+        <div class="content">
+          <div class="barwrap">
+            <div class="hpRow">
+              <span>Progresso da vida</span>
+              <span><strong id="uiHPLabel">100</strong>/100</span>
+            </div>
+            <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
+              <span id="uiHPBar" style="width:100%"></span>
+            </div>
+          </div>
+
+          <div style="height:14px"></div>
+
+          <div class="quest" id="questArea">
+            <p class="prompt" id="uiPrompt"></p>
+            <p class="hint" id="uiHint"></p>
+
+            <div class="inputRow">
+              <div class="field">
+                <label for="answerInput">Resposta (números, listas separadas por vírgula ou palavra, sem espaços extras)</label>
+                <input id="answerInput" type="text" inputmode="text" autocomplete="off" placeholder="Ex.: 36, 4,6, 0,7, poisson ..." />
+              </div>
+
+              <div class="field" style="flex:0 0 190px; min-width:190px;">
+                <label for="modeSelect">Verificação</label>
+                <select id="modeSelect" aria-label="Modo de verificação">
+                  <option value="strict" selected>Estrita (valor exato)</option>
+                  <option value="loose">Flexível (vírgula decimal, acentos, maiúsc./minúsc. e pequena tolerância)</option>
+                </select>
+                <div class="smallNote">Na verificação estrita o valor deve coincidir (<span class="kbd">0,7</span> e <span class="kbd">0.7</span> são aceitos). No modo flexível ignoramos maiúsculas, acentos, % e pequenas diferenças de arredondamento.</div>
+              </div>
+            </div>
+
+            <div class="btns">
+              <button id="btnCheck" type="button">Conferir</button>
+              <button id="btnSkip" class="btnSecondary" type="button">Pular (-vida)</button>
+              <button id="btnHelp" class="btnSecondary" type="button">Ajuda</button>
+              <button id="btnReset" class="btnSecondary" type="button">Reiniciar</button>
+              <a class="btnSecondary" href="index.html" style="text-decoration:none;padding:12px 14px;border-radius:12px;font-weight:900;border:1px solid rgba(255,255,255,.16);font-size:13.3px;color:#e8eefc">← Plataforma</a>
+            </div>
+
+            <div id="feedback" class="feedback" style="display:none" aria-live="polite"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- COLUNA LATERAL -->
+      <aside class="card" aria-label="Painel de progresso">
+        <div class="card-h">
+          <div>
+            <h2>Mapa de Aventuras</h2>
+            <div class="sub">Cada fase treina um conceito da aula e fortalece sua "intuição numérica".</div>
+          </div>
+        </div>
+
+        <div class="content">
+          <div class="sideList">
+            <div class="sideItem">
+              <div class="t">
+                <span>Missões concluídas</span>
+                <span class="kbd" id="uiDoneCount">0/0</span>
+              </div>
+              <div class="desc">
+                Progredir corretamente aumenta pontos e recupera um pouco de vida.
+              </div>
+            </div>
+
+            <div class="sideItem">
+              <div class="t">
+                <span>Objetivos</span>
+                <span class="kbd">x̄, Md, S², S</span>
+              </div>
+              <div class="desc">
+                Inclui média aritmética e ponderada, mediana, amplitude, variância, desvio padrão e aplicações em computação.
+              </div>
+            </div>
+
+            <div class="sideItem">
+              <div class="t">
+                <span>Trilha</span>
+                <span class="kbd" id="uiCurrentQuest">—</span>
+              </div>
+              <div class="desc">
+                <ol class="progressList" id="uiProgressList"></ol>
+              </div>
+            </div>
+
+            <div class="sideItem">
+              <div class="t">
+                <span>Como jogar</span>
+                <span class="kbd">Rápido</span>
+              </div>
+              <div class="desc">
+                Responda o valor pedido. Acerte para ganhar pontos. Se errar, sua vida diminui.
+              </div>
+              <div class="smallNote">
+                Atalhos: pressione <span class="kbd">Enter</span> para conferir.
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer>
+    Material de apoio da disciplina de Estatística Computacional — uso formativo, não substitui a atividade avaliativa oficial do Moodle.
+  </footer>
+
+   <!-- MODAL AJUDA -->
+  <div class="modalOverlay" id="helpModal" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+    <div class="modal">
+      <h3 id="helpTitle">Ajuda rápida (Medidas)</h3>
+      <div class="modalBody" id="helpBody">
+        <!-- preenchido via JS -->
+      </div>
+      <div class="modalFooter">
+        <button type="button" class="btnSecondary" id="btnCloseHelp">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const CFG = {"revision": "revise média (simples e ponderada), mediana, variância e desvio padrão.", "total": 21};
+    const QUESTS = [
+  {
+    "title": "Moda",
+    "prompt": "Qual a moda (valor mais frequente) do conjunto 3, 5, 5, 7, 8, 5, 9?",
+    "hint": "Conte quantas vezes cada valor aparece.",
+    "answer": "5",
+    "accepted": [
+      "5"
+    ],
+    "num": 5,
+    "tol": 0.0,
+    "list": false,
+    "explanation": "O valor 5 aparece 3 vezes — é a moda. (A média é 42/7 = 6.)",
+    "tip": "Conceito: medidas de posição resumem o conjunto: média, mediana e moda.",
+    "method": "1) Conte as repetições<br>2) Escolha a maior",
+    "id": "1",
+    "tag": "Fase 1"
+  },
+  {
+    "title": "Posição ou dispersão?",
+    "prompt": "A variância é uma medida de posição ou de dispersão?",
+    "hint": "Ela descreve o quão afastados estão os valores em relação à média.",
+    "answer": "dispersão",
+    "accepted": [
+      "dispersao",
+      "dispersão"
+    ],
+    "num": null,
+    "tol": 0.0,
+    "list": false,
+    "explanation": "A variância mede a dispersão dos dados em torno da média (junto com amplitude e desvio padrão).",
+    "tip": "Conceito: posição — média, mediana, moda; dispersão — amplitude, variância e desvio padrão.",
+    "method": "Pergunte: resume o 'centro' ou o 'espalhamento'?",
+    "id": "2",
+    "tag": "Fase 2"
+  },
+  {
+    "title": "Média aritmética: produção de leite",
+    "prompt": "Produção de leite (mil L/mês): 24,6; 22,8; 21,0; 20,2; 19,7; 18,1; 16,0; 15,5; 16,8; 19,3; 20,9; 23,4 (soma = 238,3). Qual a média mensal? Responda com 2 casas decimais.",
+    "hint": "x̄ = 238,3 / 12.",
+    "answer": "19,86",
+    "accepted": [
+      "19.86",
+      "19,86"
+    ],
+    "num": 19.86,
+    "tol": 0.011,
+    "list": false,
+    "explanation": "x̄ = 238,3/12 ≈ 19,86 mil L/mês (≈ 19,9 × 10³ L/mês).",
+    "tip": "Conceito: x̄ = Σxᵢ / n.",
+    "method": "1) Some os 12 valores<br>2) Divida por 12",
+    "id": "3",
+    "tag": "Fase 3"
+  },
+  {
+    "title": "Média aritmética: tempos",
+    "prompt": "Tempos (s): 1,2; 1,5; 1,3; 1,8; 1,7; 1,5. Qual a média?",
+    "hint": "Some os seis valores (= 9,0) e divida por 6.",
+    "answer": "1,5",
+    "accepted": [
+      "1.5",
+      "1,5"
+    ],
+    "num": 1.5,
+    "tol": 0.001,
+    "list": false,
+    "explanation": "x̄ = 9,0/6 = 1,5 s.",
+    "tip": "Conceito: a média aritmética usa todos os valores do conjunto.",
+    "method": "Σx / n.",
+    "id": "4",
+    "tag": "Fase 4"
+  },
+  {
+    "title": "Média: nota que falta",
+    "prompt": "A média de 5 notas é 7,2. Que nota uma sexta prova deve ter para que a média das 6 provas seja 7,5?",
+    "hint": "Soma desejada: 7,5 × 6 = 45. Soma atual: 7,2 × 5 = 36.",
+    "answer": "9",
+    "accepted": [
+      "9"
+    ],
+    "num": 9,
+    "tol": 0.0,
+    "list": false,
+    "explanation": "Soma desejada = 45; soma atual = 36; a sexta nota deve ser 45 − 36 = 9.",
+    "tip": "Conceito: Σx = x̄ · n.",
+    "method": "1) Soma atual = 7,2 × 5<br>2) Soma desejada = 7,5 × 6<br>3) Subtraia",
+    "id": "5",
+    "tag": "Fase 5"
+  },
+  {
+    "title": "Média ponderada: idades",
+    "prompt": "Idades dos alunos em classes com pontos médios 11, 13, 15, 17, 19, 21 e frequências 114, 157, 202, 187, 106, 41 (Σ x·fa = 12379; Σ fa = 807). Qual a idade média? Responda com 2 casas.",
+    "hint": "x̄ₚ = Σ(x·fa) / Σfa.",
+    "answer": "15,34",
+    "accepted": [
+      "15.34",
+      "15,34"
+    ],
+    "num": 15.34,
+    "tol": 0.011,
+    "list": false,
+    "explanation": "x̄ₚ = 12379/807 ≈ 15,34 anos. (O denominador é a soma das frequências.)",
+    "tip": "Conceito: média ponderada — quando os valores têm pesos (frequências); usa-se o ponto médio da classe.",
+    "method": "1) Multiplique cada ponto médio pela frequência<br>2) Some<br>3) Divida pela soma das frequências",
+    "id": "6",
+    "tag": "Fase 6"
+  },
+  {
+    "title": "Média ponderada: provas",
+    "prompt": "Provas com pesos 2, 3 e 5 e notas 6, 8 e 9. Qual a média ponderada?",
+    "hint": "(6·2 + 8·3 + 9·5) / (2 + 3 + 5).",
+    "answer": "8,1",
+    "accepted": [
+      "8.1",
+      "8,1"
+    ],
+    "num": 8.1,
+    "tol": 0.001,
+    "list": false,
+    "explanation": "(12 + 24 + 45)/10 = 81/10 = 8,1.",
+    "tip": "Conceito: x̄ₚ = Σ(xᵢ · pesoᵢ) / Σ pesos.",
+    "method": "1) Multiplique cada nota pelo peso<br>2) Some<br>3) Divida pela soma dos pesos",
+    "id": "7",
+    "tag": "Fase 7"
+  },
+  {
+    "title": "Média ponderada: duas turmas",
+    "prompt": "A turma A tem 30 alunos com média 7,0 e a turma B tem 20 alunos com média 8,0. Qual a média das duas turmas juntas?",
+    "hint": "Use o número de alunos como peso.",
+    "answer": "7,4",
+    "accepted": [
+      "7.4",
+      "7,4"
+    ],
+    "num": 7.4,
+    "tol": 0.001,
+    "list": false,
+    "explanation": "(30·7,0 + 20·8,0)/50 = 370/50 = 7,4.",
+    "tip": "Conceito: a média geral é a média ponderada das médias, com pesos iguais aos tamanhos dos grupos.",
+    "method": "1) 30×7 + 20×8<br>2) Divida por 50",
+    "id": "8",
+    "tag": "Fase 8"
+  },
+  {
+    "title": "Mediana: n ímpar",
+    "prompt": "Qual a mediana de 7, 3, 9, 1, 5? (Ordene primeiro.)",
+    "hint": "Ordenado: 1, 3, 5, 7, 9. A posição central é (n + 1)/2 = 3.",
+    "answer": "5",
+    "accepted": [
+      "5"
+    ],
+    "num": 5,
+    "tol": 0.0,
+    "list": false,
+    "explanation": "Ordenado: 1, 3, 5, 7, 9 → posição 3 → mediana = 5.",
+    "tip": "Conceito: a mediana divide o conjunto ordenado em duas partes iguais; para n ímpar, é o valor na posição (n+1)/2.",
+    "method": "1) Ordene<br>2) Pegue o elemento central",
+    "id": "9",
+    "tag": "Fase 9"
+  },
+  {
+    "title": "Mediana: n par",
+    "prompt": "Qual a mediana de 8, 2, 10, 4, 6, 12?",
+    "hint": "Ordenado: 2, 4, 6, 8, 10, 12 — tire a média dos dois centrais.",
+    "answer": "7",
+    "accepted": [
+      "7"
+    ],
+    "num": 7,
+    "tol": 0.0,
+    "list": false,
+    "explanation": "Md = (6 + 8)/2 = 7.",
+    "tip": "Conceito: para n par, a mediana é a média aritmética dos valores nas posições n/2 e n/2 + 1.",
+    "method": "1) Ordene<br>2) Média dos dois valores centrais",
+    "id": "10",
+    "tag": "Fase 10"
+  },
+  {
+    "title": "Mediana: produção de leite",
+    "prompt": "Com a produção de leite ordenada (15,5; 16,0; 16,8; 18,1; 19,3; 19,7; 20,2; 20,9; 21,0; 22,8; 23,4; 24,6), qual a mediana? Responda com 2 casas decimais.",
+    "hint": "n = 12: média das posições 6 e 7.",
+    "answer": "19,95",
+    "accepted": [
+      "19.95",
+      "19,95"
+    ],
+    "num": 19.95,
+    "tol": 0.001,
+    "list": false,
+    "explanation": "Md = (19,7 + 20,2)/2 = 19,95.",
+    "tip": "Conceito: a mediana é robusta a outliers; a média não é.",
+    "method": "(x₆ + x₇)/2.",
+    "id": "11",
+    "tag": "Fase 11"
+  },
+  {
+    "title": "Posições da mediana",
+    "prompt": "Em um conjunto com n = 40 observações, quais são as duas posições centrais cuja média dá a mediana? Responda separando por vírgula, sem espaços.",
+    "hint": "n/2 e n/2 + 1.",
+    "answer": "20,21",
+    "accepted": [
+      "20,21"
+    ],
+    "num": null,
+    "tol": 0.0,
+    "list": true,
+    "explanation": "As posições são n/2 = 20 e n/2 + 1 = 21.",
+    "tip": "Conceito: n par → posições n/2 e n/2 + 1.",
+    "method": "Calcule n/2 e some 1.",
+    "id": "12",
+    "tag": "Fase 12"
+  },
+  {
+    "title": "Amplitude",
+    "prompt": "Qual a amplitude (máximo − mínimo) da produção de leite (mínimo 15,5 e máximo 24,6 mil L/mês)?",
+    "hint": "24,6 − 15,5.",
+    "answer": "9,1",
+    "accepted": [
+      "9.1",
+      "9,1"
+    ],
+    "num": 9.1,
+    "tol": 0.001,
+    "list": false,
+    "explanation": "Amplitude = 24,6 − 15,5 = 9,1.",
+    "tip": "Conceito: amplitude = valor máximo − valor mínimo; é a medida de dispersão mais simples.",
+    "method": "Máximo − mínimo.",
+    "id": "13",
+    "tag": "Fase 13"
+  },
+  {
+    "title": "Amplitude: turmas",
+    "prompt": "Notas da turma B: 3,0; 8,6; 9,1; 5,3; 4,8; 4,4; 7,9. Qual a amplitude?",
+    "hint": "Identifique o maior e o menor valor.",
+    "answer": "6,1",
+    "accepted": [
+      "6.1",
+      "6,1"
+    ],
+    "num": 6.1,
+    "tol": 0.001,
+    "list": false,
+    "explanation": "9,1 − 3,0 = 6,1.",
+    "tip": "Conceito: dois conjuntos podem ter a mesma média e dispersões diferentes.",
+    "method": "Máximo − mínimo.",
+    "id": "14",
+    "tag": "Fase 14"
+  },
+  {
+    "title": "Variância populacional",
+    "prompt": "Calcule a variância populacional (divisor n) do conjunto {2, 4, 6, 8}.",
+    "hint": "Média = 5. Desvios²: 9, 1, 1, 9 (soma 20). Divida por n = 4.",
+    "answer": "5",
+    "accepted": [
+      "5"
+    ],
+    "num": 5,
+    "tol": 0.0,
+    "list": false,
+    "explanation": "S² = 20/4 = 5. (Pelo divisor n − 1, seria 20/3 ≈ 6,67.)",
+    "tip": "Conceito: variância é a média dos quadrados dos desvios em relação à média: S² = Σ(xᵢ − x̄)²/n.",
+    "method": "1) Calcule x̄<br>2) Eleve ao quadrado cada desvio<br>3) Some e divida por n",
+    "id": "15",
+    "tag": "Fase 15"
+  },
+  {
+    "title": "Variância amostral: turma A",
+    "prompt": "Notas da turma A: 9,3; 8,0; 4,2; 5,0; 7,0; 8,5; 6,4 (média ≈ 6,91). Qual a variância com divisor n − 1 = 6? Responda com 2 casas decimais.",
+    "hint": "Soma dos quadrados dos desvios ≈ 20,69; divida por 6.",
+    "answer": "3,45",
+    "accepted": [
+      "3.45",
+      "3,45"
+    ],
+    "num": 3.45,
+    "tol": 0.011,
+    "list": false,
+    "explanation": "S² ≈ 20,69/6 ≈ 3,45 (turma B: 5,55).",
+    "tip": "Conceito: nos exemplos de turmas A e B, o divisor é n − 1 = 6.",
+    "method": "1) Desvios em relação a 6,91<br>2) Quadrados e soma<br>3) Divida por 6",
+    "id": "16",
+    "tag": "Fase 16"
+  },
+  {
+    "title": "Propriedade da variância",
+    "prompt": "Um conjunto tem variância 4. Multiplicando cada valor por 3, a variância passa a ser quanto? (Propriedade: S²(kX) = k²·S²(X).)",
+    "hint": "k² = 9.",
+    "answer": "36",
+    "accepted": [
+      "36"
+    ],
+    "num": 36,
+    "tol": 0.0,
+    "list": false,
+    "explanation": "S²(3X) = 3² × 4 = 36. (Somar uma constante não altera a variância.)",
+    "tip": "Conceito: S²(k) = 0; S²(X + K) = S²(X); S²(K·X) = K²·S²(X).",
+    "method": "Multiplique a variância por k².",
+    "id": "17",
+    "tag": "Fase 17"
+  },
+  {
+    "title": "Desvio padrão",
+    "prompt": "A turma A tem S² = 3,45. Qual o desvio padrão S = √S²? Responda com 2 casas decimais.",
+    "hint": "√3,45 ≈ 1,857.",
+    "answer": "1,86",
+    "accepted": [
+      "1.86",
+      "1,86"
+    ],
+    "num": 1.86,
+    "tol": 0.011,
+    "list": false,
+    "explanation": "S = √3,45 ≈ 1,86 — mesma unidade das notas. A turma A é mais consistente que a B (S ≈ 2,36).",
+    "tip": "Conceito: o desvio padrão é a raiz quadrada da variância e volta à mesma unidade dos dados.",
+    "method": "Extraia a raiz quadrada da variância.",
+    "id": "18",
+    "tag": "Fase 18"
+  },
+  {
+    "title": "Propriedade do desvio padrão",
+    "prompt": "Um conjunto tem desvio padrão 2. Multiplicando cada valor por −3, o desvio padrão passa a ser quanto? (Propriedade: S(K·X) = |K|·S(X).)",
+    "hint": "Use o módulo de K.",
+    "answer": "6",
+    "accepted": [
+      "6"
+    ],
+    "num": 6,
+    "tol": 0.0,
+    "list": false,
+    "explanation": "S(−3X) = |−3| × 2 = 6. (Somar uma constante não altera o desvio.)",
+    "tip": "Conceito: S(X + K) = S(X) e S(X·K) = |K|·S(X).",
+    "method": "Multiplique o desvio por |K|.",
+    "id": "19",
+    "tag": "Fase 19"
+  },
+  {
+    "title": "Computação: padronização (z-score)",
+    "prompt": "Na padronização z = (x − x̄)/s, com x̄ = 50 e s = 10, qual o escore z para x = 70?",
+    "hint": "(70 − 50)/10.",
+    "answer": "2",
+    "accepted": [
+      "2"
+    ],
+    "num": 2,
+    "tol": 0.0,
+    "list": false,
+    "explanation": "z = (70 − 50)/10 = 2: o valor está a 2 desvios padrão acima da média.",
+    "tip": "Conceito: média e desvio padrão são usados para normalização e padronização de dados em Ciência de Dados e Machine Learning.",
+    "method": "1) x − média<br>2) Divida pelo desvio padrão",
+    "id": "20",
+    "tag": "Fase 20"
+  },
+  {
+    "title": "Computação: detecção de anomalia",
+    "prompt": "O tráfego de rede tem média de 500 pacotes/s e desvio padrão de 50. Um valor de 700 pacotes/s está a quantos desvios padrão da média?",
+    "hint": "(700 − 500)/50.",
+    "answer": "4",
+    "accepted": [
+      "4"
+    ],
+    "num": 4,
+    "tol": 0.0,
+    "list": false,
+    "explanation": "z = 200/50 = 4 desvios padrão: valor muito atípico, possível anomalia (ex.: ataque).",
+    "tip": "Conceito: em segurança computacional, estatísticas auxiliam na detecção de anomalias no tráfego de rede.",
+    "method": "z = (x − média)/desvio.",
+    "id": "21",
+    "tag": "Fase 21"
+  }
+];
+
+    const state = { idx:0, score:0, level:1, hp:100, done:new Array(QUESTS.length).fill(false), streak:0 };
+
+    const $ = id => document.getElementById(id);
+    const uiScore=$("uiScore"), uiLevel=$("uiLevel"), uiHP=$("uiHP"), uiHPBar=$("uiHPBar"), uiHPLabel=$("uiHPLabel"),
+          uiPrompt=$("uiPrompt"), uiHint=$("uiHint"), uiQuestTag=$("uiQuestTag"), uiStageDesc=$("uiStageDesc"),
+          answerInput=$("answerInput"), modeSelect=$("modeSelect"), feedback=$("feedback"), uiDoneCount=$("uiDoneCount"),
+          uiProgressList=$("uiProgressList"), uiCurrentQuest=$("uiCurrentQuest"), helpModal=$("helpModal"), helpBody=$("helpBody");
+
+    function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+    function rich(s){ return esc(s).replace(/\n/g,"<br>"); }
+
+    function stripAccents(s){ return s.normalize("NFD").replace(/[̀-ͯ]/g,""); }
+    function normalizeAnswer(str){
+      if (str === null || str === undefined) return "";
+      return stripAccents(String(str).trim().replace(/\s+/g,"").toLowerCase().replace(/[−–—]/g,"-"));
+    }
+    function normalizeLoose(str, isList){
+      let s = normalizeAnswer(str);
+      s = s.replace(/^p\(.*?\)=/, "");
+      s = s.replace(/[{}()%°]/g, "");
+      if (!isList && /^-?\d+,\d+$/.test(s)) s = s.replace(",", ".");
+      return s;
+    }
+
+    function setFeedback(type, title, msg){
+      feedback.style.display = "block";
+      feedback.classList.remove("good","bad");
+      feedback.classList.add(type === "good" ? "good" : "bad");
+      feedback.innerHTML = `<div class="title">${type === "good" ? "✅ Acertou" : "🛑 Quase lá"}</div><p><strong>${esc(title)}</strong><br>${rich(msg)}</p>`;
+    }
+
+    function lockInputs(lock){
+      answerInput.disabled = lock; modeSelect.disabled = lock;
+      $("btnCheck").disabled = lock; $("btnSkip").disabled = lock;
+    }
+
+    function updateUI(){
+      uiScore.textContent = state.score;
+      uiLevel.textContent = state.level;
+      uiHP.textContent = state.hp;
+      uiHPLabel.textContent = Math.max(0, state.hp);
+      uiHPBar.style.width = Math.max(0, Math.min(100, state.hp)) + "%";
+
+      uiProgressList.innerHTML = "";
+      QUESTS.forEach((q, i) => {
+        const li = document.createElement("li");
+        li.innerHTML = `<strong>Fase ${i+1}.</strong> ${state.done[i] ? "✅ Concluída" : "⏳ Pendente"}`;
+        uiProgressList.appendChild(li);
+      });
+      uiDoneCount.textContent = `${state.done.filter(Boolean).length}/${QUESTS.length}`;
+      uiCurrentQuest.textContent = `Atual: Fase ${state.idx+1}`;
+
+      const q = QUESTS[state.idx];
+      uiQuestTag.textContent = q.tag;
+      uiPrompt.textContent = q.prompt;
+      uiHint.textContent = "Dica: " + q.hint;
+      uiStageDesc.textContent = `${q.title} — tente responder com precisão.`;
+    }
+
+    function endGameIfNeeded(){
+      if (state.hp <= 0){
+        const completed = state.done.filter(Boolean).length;
+        setFeedback("bad", "Sua vida chegou a 0",
+          `Fim de jogo! Você concluiu ${completed} de ${QUESTS.length}. Sugestão: ${CFG.revision} Use "Reiniciar" para tentar de novo.`);
+        lockInputs(true);
+        return true;
+      }
+      return false;
+    }
+
+    function nextQuest(){
+      const total = QUESTS.length;
+      let steps = 0, i = (state.idx + 1) % total;
+      while (state.done[i] && steps < total){ i = (i + 1) % total; steps++; }
+      state.idx = i;
+      answerInput.value = "";
+      feedback.style.display = "none";
+      updateUI();
+      answerInput.focus();
+    }
+
+    function winCheck(){
+      if (state.done.every(Boolean)){
+        setFeedback("good", "🎉 Missão Final concluída!",
+          `Você finalizou todas as ${QUESTS.length} fases com pontuação total de ${state.score} e nível ${state.level}. Parabéns!`);
+        lockInputs(true);
+      }
+    }
+
+    function correctReward(){
+      const streakBonus = Math.min(60, state.streak * 10);
+      state.score += 120 + streakBonus;
+      state.hp = Math.min(100, state.hp + 10 + Math.min(10, state.streak));
+      state.level = Math.max(state.level, 1 + Math.floor(state.score / 600));
+    }
+    function wrongPenalty(){ state.streak = 0; state.hp -= 18; }
+    function skipPenalty(){ state.streak = 0; state.hp -= 10; }
+
+    function isAccepted(userAns){
+      const q = QUESTS[state.idx];
+      const strict = modeSelect.value === "strict";
+      if (strict){
+        return q.accepted.map(normalizeAnswer).includes(normalizeAnswer(userAns));
+      }
+      const n = normalizeLoose(userAns, q.list);
+      if (q.accepted.map(a => normalizeLoose(a, q.list)).includes(n)) return true;
+      if (q.num !== null && q.num !== undefined && /^-?\d+(\.\d+)?$/.test(n)){
+        const tol = (q.tol || 0) + 1e-9;
+        return Math.abs(parseFloat(n) - q.num) <= tol;
+      }
+      return false;
+    }
+
+    $("btnCheck").addEventListener("click", () => {
+      if (answerInput.disabled) return;
+      const user = answerInput.value;
+      if (!user || !user.trim()){ setFeedback("bad", "Entrada vazia", "Digite sua resposta antes de conferir."); return; }
+      const q = QUESTS[state.idx];
+      if (isAccepted(user)){
+        state.done[state.idx] = true;
+        state.streak += 1;
+        correctReward();
+        setFeedback("good", "Resposta correta!", q.explanation);
+        updateUI();
+        setTimeout(() => {
+          winCheck();
+          if (!endGameIfNeeded() && !state.done.every(Boolean)) nextQuest();
+        }, 650);
+      } else {
+        wrongPenalty();
+        setFeedback("bad", "Resposta incorreta", "Tente novamente ou use a Ajuda para revisar o conceito.");
+        updateUI();
+        endGameIfNeeded();
+      }
+    });
+
+    $("btnSkip").addEventListener("click", () => {
+      if (answerInput.disabled) return;
+      const q = QUESTS[state.idx];
+      skipPenalty();
+      setFeedback("bad", "Pulou a missão", `A resposta correta era: ${q.answer}. (Você pode revisar depois pela Ajuda.)`);
+      updateUI();
+      if (endGameIfNeeded()) return;
+      setTimeout(() => nextQuest(), 850);
+    });
+
+    $("btnReset").addEventListener("click", () => {
+      state.idx = 0; state.score = 0; state.level = 1; state.hp = 100; state.streak = 0;
+      state.done = new Array(QUESTS.length).fill(false);
+      lockInputs(false);
+      answerInput.value = ""; feedback.style.display = "none";
+      updateUI(); answerInput.focus();
+    });
+
+    $("btnHelp").addEventListener("click", () => {
+      helpBody.innerHTML = buildHelp(QUESTS[state.idx]);
+      helpModal.classList.add("show");
+    });
+    $("btnCloseHelp").addEventListener("click", () => helpModal.classList.remove("show"));
+    helpModal.addEventListener("click", e => { if (e.target === helpModal) helpModal.classList.remove("show"); });
+    answerInput.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); $("btnCheck").click(); } });
+
+    function buildHelp(q){
+      const n = QUESTS.findIndex(x => x.id === q.id) + 1;
+      return `<strong>Fase ${n} — receita rápida</strong>
+              <div>${rich(q.tip)}</div>
+              <div><strong>Como fazer:</strong><br>${rich(q.method)}</div>
+              <div class="smallNote">Modo de verificação atual: <strong>${modeSelect.value === "strict" ? "Estrita" : "Flexível"}</strong>.</div>`;
+    }
+
+    (function init(){
+      updateUI();
+      answerInput.focus();
+      feedback.style.display = "none";
+    })();
+  </script>
+</body>
+</html>
